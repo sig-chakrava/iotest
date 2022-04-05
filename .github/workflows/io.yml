@@ -27,8 +27,8 @@ jobs:
 
     - name: IO Client Run End to End
       run: |
-            if [ ! -d 'io_client-${{env.Runner_OS_Type}}' ]; then
-              wget -O io_client-${{env.Runner_OS_Type}}.zip "${{secrets.IO_SERVER_URL}}/api/downloads/io-client?extension=zip&platform=${{env.Runner_OS_Type}}"
+            if [ ! -e io ]; then
+              wget -O io_client-${{env.Runner_OS_Type}}.zip "${{secrets.IO_SERVER_URL}}/api/ioiq/api/downloads/io-client?extension=zip&platform=${{env.Runner_OS_Type}}"
               unzip -o -j io_client-${{env.Runner_OS_Type}}.zip
             fi
             chmod +x io    
