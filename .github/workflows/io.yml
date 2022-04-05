@@ -1,0 +1,75 @@
+name: "Synopsys Intelligent Security Scan"
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+jobs:
+  endtoend:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set Env for IO # optional
+      run: |
+            echo "IO_CLIENT_VERSION=0.1.629" >> $GITHUB_ENV
+            echo "Runner_OS_Type=macosx" >> $GITHUB_ENV
+            echo "COV_HOME=/Users/chakrava/.synopsys/polaris/coverity-analysis-tools/cov_analysis-macosx-2022.3.0/bin" >> $GITHUB_ENV
+       
+    - name: Cache IO Client
+      id: cache-io-client
+      uses: actions/cache@v2
+      with:
+        path: |
+              io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}/io
+              io_state.json
+        key: io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}
+
+    - name: IO Client Run End to End
+      run: |
+            if [ ! -d 'io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}' ]; then
+              wget http://artifactory.internal.synopsys.com/artifactory/clops-local/sig/synopsys/com/clops/io_client/${{env.IO_CLIENT_VERSION}}/io_client-${{env.IO_CLIENT_VERSION}}-${Runner_OS_Type}.zip
+              unzip -o io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}.zip
+            fi
+            chmod +x io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}/io    
+            io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}/io --stage io --stage execution --stage workflow --adapters adapters.json
+      env: 
+        SYNOPSYS_IO_Workflow_Engine_Version : 2022.4.0-alpha-0.13
+        SYNOPSYS_IO_io_server_token: ${{secrets.IO_SERVER_TOKEN}}
+        SYNOPSYS_IO_project_name: chakravajenkins
+        SYNOPSYS_IO_io_server_url: https://dev.io.sig-clops.synopsys.com
+        SYNOPSYS_IO_persona_type: devsecops
+        SYNOPSYS_IO_polaris_instanceurl: https://dev01.dev.polaris.synopsys.com
+        SYNOPSYS_IO_polaris_authtoken:  ${{secrets.POLARIS_ACCESS_TOKEN}}
+        SYNOPSYS_IO_polaris_projectName: sig-chakrava/maven
+        SYNOPSYS_IO_sigma_downloadurl: https://artifactory.internal.synopsys.com/artifactory/sigma-local/released/latest/sigma-macos_x86_64
+        SYNOPSYS_IO_Jira_HostUrl: https://coverity-e2e-test.atlassian.net
+        SYNOPSYS_IO_Jira_Username: sig-rnd-io-testuser@synopsys.com
+        SYNOPSYS_IO_Jira_AuthToken: ${{secrets.JIRA_AUTH_TOKEN}}
+        SYNOPSYS_IO_Jira_IssueType: bug
+        SYNOPSYS_IO_Jira_Project_Key: DIS
+        SYNOPSYS_IO_Jira_Assignee: Chakravarthy S M
+        SYNOPSYS_IO_slack_channelIdentifier: ${{secrets.SLACK_ID}}
+        SYNOPSYS_IO_slack_bearerToken: ${{secrets.SLACK_TOKEN}}
+        SYNOPSYS_IO_jira_issuesquery: project=DIS
+        SYNOPSYS_IO_jira_project_name: dev-io-suhas
+        SYNOPSYS_IO_scm_type: github
+        SYNOPSYS_IO_scm_owner: sig-chakrava
+        SYNOPSYS_IO_scm_repository_name: iotest
+        SYNOPSYS_IO_scm_repository_branch_name: master
+        SYNOPSYS_IO_github_token: ${{secrets.GTH_AUTH_TOKEN}}
+        SYNOPSYS_IO_github_username: chakrava@synopsys.com
+        SYNOPSYS_IO_github_apiUrl: https://api.github.com/repos/
+        SYNOPSYS_IO_project_release_type: major
+        SYNOPSYS_IO_Blackduck_AuthToken: ${{secrets.BLACKDUCK_TOKEN}}
+        SYNOPSYS_IO_Blackduck_ProjectName: sig-chakrava/maven
+        SYNOPSYS_IO_Blackduck_InstanceUrl: https://bd.io.sig-clops.synopsys.com
+        SYNOPSYS_IO_Blackduck_ProjectVersion: 1.0.0
+        SYNOPSYS_IO_Coverity_InstanceUrl: https://coverity.io.sig-clops.synopsys.com
+        SYNOPSYS_IO_Coverity_Username: ${{secrets.COVERITY_USERNAME}}
+        SYNOPSYS_IO_Coverity_Password: ${{secrets.COVERITY_PASSWORD}}
+        SYNOPSYS_IO_Coverity_Stream: chakraiojenkins
+        SYNOPSYS_IO_Coverity_FilePath: coverity-results.json
+
+   
