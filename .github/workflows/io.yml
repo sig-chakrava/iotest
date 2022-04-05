@@ -13,7 +13,6 @@ jobs:
 
     - name: Set Env for IO # optional
       run: |
-            echo "IO_CLIENT_VERSION=0.1.629" >> $GITHUB_ENV
             echo "Runner_OS_Type=macosx" >> $GITHUB_ENV
             echo "COV_HOME=/Users/chakrava/.synopsys/polaris/coverity-analysis-tools/cov_analysis-macosx-2022.3.0/bin" >> $GITHUB_ENV
        
@@ -22,23 +21,23 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-              io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}/io
+              io_client-${{env.Runner_OS_Type}}/io
               io_state.json
-        key: io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}
+        key: io_client-${{env.Runner_OS_Type}}
 
     - name: IO Client Run End to End
       run: |
-            if [ ! -d 'io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}' ]; then
-              wget http://artifactory.internal.synopsys.com/artifactory/clops-local/sig/synopsys/com/clops/io_client/${{env.IO_CLIENT_VERSION}}/io_client-${{env.IO_CLIENT_VERSION}}-${Runner_OS_Type}.zip
-              unzip -o io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}.zip
+            if [ ! -d 'io_client-${{env.Runner_OS_Type}}' ]; then
+              wget -O io_client-${{env.Runner_OS_Type}}.zip "${{secrets.IO_SERVER_URL}}/api/downloads/io-client?extension=zip&platform=${{env.Runner_OS_Type}}"
+              unzip -o io_client-${{env.Runner_OS_Type}}.zip
             fi
-            chmod +x io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}/io    
-            io_client-${{env.IO_CLIENT_VERSION}}-${{env.Runner_OS_Type}}/io --stage io --stage execution --stage workflow --adapters adapters.json
+            chmod +x io_client-${{env.Runner_OS_Type}}/io    
+            io_client-${{env.Runner_OS_Type}}/io --stage io --stage execution --stage workflow --adapters adapters.json
       env: 
         SYNOPSYS_IO_Workflow_Engine_Version : 2022.4.0-alpha-0.13
         SYNOPSYS_IO_io_server_token: ${{secrets.IO_SERVER_TOKEN}}
         SYNOPSYS_IO_project_name: chakravajenkins
-        SYNOPSYS_IO_io_server_url: https://dev.io.sig-clops.synopsys.com
+        SYNOPSYS_IO_io_server_url: ${{secrets.IO_SERVER_URL}}
         SYNOPSYS_IO_persona_type: devsecops
         SYNOPSYS_IO_polaris_instanceurl: https://dev01.dev.polaris.synopsys.com
         SYNOPSYS_IO_polaris_authtoken:  ${{secrets.POLARIS_ACCESS_TOKEN}}
